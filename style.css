@@ -1,0 +1,84 @@
+/* 1) Load custom typeface */
+@font-face {
+  font-family: 'PressStart2p';
+  src: url('PressStart2p.ttf') format('truetype');
+}
+
+/* 2) Reset margins and paddings */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* 3) Ensure p5.js canvas displays as a block */
+canvas {
+  display: block;
+  margin: 0 auto;
+  cursor: url('CURSOR_WHITE.png') 16 16, auto;
+}
+
+body {
+  font-family: 'PressStart2p', sans-serif;
+  text-align: center;
+  user-select: none;
+  margin-top: 20px;
+  background: #ffffff no-repeat center center;
+  background-size: cover;
+  cursor: url('CURSOR_WHITE.png') 16 16, auto;
+}
+
+/* 5) Palette styling */
+#colorPalette {
+  margin: 10px auto;
+}
+
+.colorOption {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin: 0 5px;
+  border: 2px solid transparent;
+}
+
+.selected {
+  border: 2px solid #000;
+}
+
+/* 6) Pixel art grid styling (with background image applied) */
+#pixelCanvas {
+  border-collapse: collapse;
+  margin: 20px auto;
+ /* background: url('2BG_OFFWHITE.png') no-repeat center center;
+  background-size: contain;*/
+}
+
+
+/* New: Canvas container (loom frame) */
+/* New: Canvas container (loom frame) */
+#canvasContainer {
+  margin: 20px auto;
+  padding: 20px;
+  background: url('2BG_OFFWHITE-1.png') no-repeat center center;
+  background-size: cover;
+  border: 8px solid #f8a84d;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* Adjusted: Pixel art grid styling */
+#pixelCanvas {
+  border-collapse: collapse;
+  margin: 20px auto;                /* Center the grid within the container */
+  width: 1080px;                    /* 27 columns x 40px per cell = 1080px */
+  table-layout: fixed;              /* Fixed layout to honor cell widths */
+  background: rgba(255,255,255,0.5);  /* Semi-transparent background */
+}
+
+/* Adjusted: Each grid cell */
+#pixelCanvas td {
+  width: 40px;  /* Set cell width to 40px */
+  height: 30px; /* Set cell height to 30px */
+  border: 1px solid #f8a84d; /* Darker border for visibility */
+  padding: 0;   /* Remove any default padding */
+  margin: 0;    /* Remove any default margin */
+  box-sizing: border-box; /* Include borders in the width/height */
+}

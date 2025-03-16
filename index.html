@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Digital Dreamweavers</title>
+  <!-- p5.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <!-- Link to external CSS -->
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Additional inline styles if needed */
+  </style>
+</head>
+<body>
+  <h1>Digital Dreamweavers</h1>
+  
+  <!-- Color Palette -->
+  <div id="colorPalette">
+    <span class="colorOption selected" data-color="#c30202" data-cursor="CURSOR_RED.png" style="background-color: #a30505;"></span>
+    <span class="colorOption" data-color="#180f0f" data-cursor="CURSOR_BLACK.png" style="background-color: #180f0f;"></span>
+    <span class="colorOption" data-color="#e2ac1d" data-cursor="CURSOR_YELLOW.png" style="background-color: #e2ac1d;"></span>
+    <span class="colorOption" data-color="#ffffff" data-cursor="CURSOR_WHITE.png" style="background-color: #ffffff;"></span>
+    <span class="colorOption" data-color="#242968" data-cursor="CURSOR_BLUE.png" style="background-color: #242968;"></span>
+  </div>
+  
+  <!-- Pixel art grid container (loom frame) -->
+  <div id="canvasContainer">
+    <table id="pixelCanvas"></table>
+  </div>
+  
+  <!-- p5.js Sketch -->
+  <script src="sketch.js"></script>
+  
+  <!-- Pixel Art Grid Script (grid creation, event listeners, reset & undo functionality) -->
+  <script>
+    /***************************************************************
+     * Global Variables & Setup
+     ***************************************************************/
+    const pixelCanvas = document.getElementById("pixelCanvas");
+    const colorOptions = document.querySelectorAll(".colorOption");
+
+    /* Map each color to a corresponding texture image file */
+    const textureMap = {
+      "#c30202": "RED_TEXTURE.png",
+      "#180f0f": "BLACK_TEXTURE.png",
+      "#e2ac1d": "YELLOW_TEXTURE.png",
+      "#ffffff": "WHITE_TEXTURE.png",
+      "#242968": "BLUE_TEXTURE.png"
+    };
+
+    let selectedColor = "#c30202"; // default selected color (red)
+    let isMouseDown = false;
+    let undoStack = []; // Global undo stack to record cell changes
+
+    /***************************************************************
+     * Color Palette: Update Selection & Cursor
+     ***************************************************************/
+    colorOptions.forEach(option => {
+      option.addEventListener("click", () => {
+        selectedColor = option.getAttribute("data-color");
+        colorOptions.forEach(opt => opt.classList.remove("selected"));
+        option.classList.add("selected");
+        
+        const cursorFile = option.getAttribute("data-cursor");
+        console.log("Changing cursor to:", cursorFile);  // Debug output
+        // Update the custom cursor (works on desktop; not shown on mobile)
+        if (cursorFile) {
+          document.body.style.cursor = `url("${cursorFile}") 16 16, auto`;
+          const canvasEl = document.querySelector("canvas");
+          if (canvasEl) {
+            canvasEl.style.cursor = `url("${cursorFile}") 16 16, auto`;
+          }
+          document.querySelectorAll("#pixelCanvas td").forEach(cell => {
+            cell.style.cursor = `url("${cursorFile}") 16 16, auto`;
+          });
+        }
+      });
+    });
+
+    /***************************************************************
+     * Grid Creation
+     ***************************************************************/
+    const columns = 27; // 27 columns (27 x 40px = 1080px width)
+    const rows = 50;    // 50 rows (adjust as needed)
+
+    // Clear any previous grid content
+    pixelCanvas.innerHTML = "";
+
+    // Create the grid using separate rows and columns
+    for (let i = 0; i < rows; i++) {
+      const rowEl = pixelCanvas.insertRow();
+      for (let j = 0; j < columns; j++) {
+        const cell = rowEl.insertCell();
+
+        /***************************************************************
+         * Mouse Events
+         ***************************************************************/
+        cell.addEventListener("mousedown", (e) => {
+          e.preventDefault(); // Prevent text selection
+          let previousTexture = cell.style.backgroundImage || "";
+          undoStack.push({ cell: cell, previousTexture: previousTexture });
+
+          let textureImage = textureMap[selectedColor];
+          cell.style.backgroundImage = `url('${textureImage}')`;
+          cell.style.backgroundSize = "100% 100%";
+          cell.style.backgroundRepeat = "no-repeat";
+          isMouseDown = true;
+        });
+
+        cell.addEventListener("mouseover", () => {
+          if (isMouseDown) {
+            let previousTexture = cell.style.backgroundImage || "";
+            undoStack.push({ cell: cell, previousTexture: previousTexture });
+
+            let textureImage = textureMap[selectedColor];
+            cell.style.backgroundImage = `url('${textureImage}')`;
+            cell.style.backgroundSize = "100% 100%";
+            cell.style.backgroundRepeat = "no-repeat";
+          }
+        });
+
+        /***************************************************************
+         * Touch Events (Mobile Interactivity)
+         ***************************************************************/
+        cell.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          let previousTexture = cell.style.backgroundImage || "";
+          undoStack.push({ cell: cell, previousTexture: previousTexture });
+
+          let textureImage = textureMap[selectedColor];
+          cell.style.backgroundImage = `url('${textureImage}')`;
+          cell.style.backgroundSize = "100% 100%";
+          cell.style.backgroundRepeat = "no-repeat";
+          isMouseDown = true;
+        });
+
+        cell.addEventListener("touchmove", (e) => {
+          e.preventDefault();
+          if (isMouseDown) {
+            let previousTexture = cell.style.backgroundImage || "";
+            undoStack.push({ cell: cell, previousTexture: previousTexture });
+
+            let textureImage = textureMap[selectedColor];
+            cell.style.backgroundImage = `url('${textureImage}')`;
+            cell.style.backgroundSize = "100% 100%";
+            cell.style.backgroundRepeat = "no-repeat";
+          }
+        });
+      }
+    }
+
+    /***************************************************************
+     * End Drawing on Mouse/Touch Release
+     ***************************************************************/
+    document.addEventListener("mouseup", () => { isMouseDown = false; });
+    document.addEventListener("touchend", () => { isMouseDown = false; });
+
+    /***************************************************************
+     * Key Events: Reset (Backspace) & Undo (Enter)
+     ***************************************************************/
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        document.querySelectorAll("#pixelCanvas td").forEach(cell => {
+          cell.style.backgroundImage = "";
+        });
+        undoStack = [];
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (undoStack.length > 0) {
+          const lastAction = undoStack.pop();
+          lastAction.cell.style.backgroundImage = lastAction.previousTexture;
+        }
+      }
+    });
+  </script>
+  
+  <!-- NEW SCRIPT: Dynamically set container size to wrap the background image -->
+  <script>
+    const canvasContainer = document.getElementById("canvasContainer");
+    const bgImage = new Image();
+    bgImage.src = '2BG_OFFWHITE-1.png'; // Make sure this file path is correct.
+    bgImage.onload = function() {
+      canvasContainer.style.width = bgImage.naturalWidth + 'px';
+      canvasContainer.style.height = bgImage.naturalHeight + 'px';
+    };
+  </script>
+</body>
+</html>
